@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load cache %}
+{% block title %}
+  подписки
+{% endblock %}
+{% block content %}
+  {% include 'posts/includes/switcher.html' %}
+  {% cache 20 index_page %}
+  {% for post in favorites %}
+    {% include 'posts/includes/card_of_post.html'%}
+    {% if not forloop.last %}<hr>{% endif %}
+  {% endfor %}
+  {% include 'posts/includes/paginator.html' %}
+  {% endcache %} 
+{% endblock %}

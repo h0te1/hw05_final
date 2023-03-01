@@ -293,10 +293,10 @@ class FollowTests(TestCase):
         )
         example = Post.objects.first()
         response = self.client_auth_follower.get(reverse('posts:follow_index'))
-        post_in_follow = response.context['favorites'][0]
+        post_in_follow = response.context['page_obj'][0]
         self.assertEqual(post_in_follow, example)
         # в качестве неподписанного пользователя проверяем собственную ленту
         response = self.client_auth_following.get(
             reverse('posts:follow_index'))
-        lenght = len(response.context.get('favorites').object_list)
+        lenght = len(response.context.get('page_obj').object_list)
         self.assertEqual(lenght, 0)

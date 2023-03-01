@@ -6,7 +6,7 @@
 {% block content %}
   {% include 'posts/includes/switcher.html' %}
   {% cache 20 index_page %}
-  {% for post in favorites %}
+  {% for post in page_obj %}
     {% include 'posts/includes/card_of_post.html'%}
     {% if not forloop.last %}<hr>{% endif %}
   {% endfor %}

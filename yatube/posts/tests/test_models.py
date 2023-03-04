@@ -7,21 +7,20 @@ class PostModelTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='auth')
+        cls.user = User.objects.create_user('auth')
         cls.group = Group.objects.create(
-            title='Тестовая группа',
-            slug='Тестовый слаг',
-            description='Тестовое описание',
+            title='группа',
+            slug='slug',
         )
         cls.post = Post.objects.create(
             author=cls.user,
-            text='Тестовый пост в котором больше пятнадцати символов',
+            text='пост в котором больше пятнадцати символов',
         )
 
     def test_group_have_correct_object_names(self):
-        """Проверяем, что у группы корректно работает __str__."""
+        """у группы корректно работает __str__."""
         self.assertEqual(self.group.title, str(self.group))
 
     def test_post_have_correct_object_names(self):
-        """Проверяем, что у поста корректно работает __str__."""
+        """у поста корректно работает __str__."""
         self.assertEqual(self.post.text[:15], str(self.post))

@@ -22,5 +22,20 @@ class GroupAdmin(admin.ModelAdmin):
     search_fields = ('title',)
 
 
+class CommentAdmin(admin.ModelAdmin):
+    list_display = (
+        'post',
+        'author',
+        'text',
+        'created'
+    )
+    list_editable = ('text')
+    search_fields = (
+        'text',
+        'post'
+    )
+    list_filter = ('created')
+
+
 admin.site.register(Post, PostAdmin)
 admin.site.register(Group, GroupAdmin)

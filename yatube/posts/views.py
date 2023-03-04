@@ -34,18 +34,23 @@ def profile(request, username):
     postes = author.posts.select_related('group').all()
     count = postes.count()
     page_obj = paginator(request, postes)
+    followers = Follow.objects.filter(author=author).count()
     if request.user.is_authenticated:
         following = Follow.objects.filter(
             user=request.user, author=author
         ).exists()
     else:
+        # к сожалению, если удалить else в этом месте, то тесты выдают ошибку
+        # local variable 'following' referenced before assignment
+        # Мне кажется, что это из-за того, что following не объявляется.
+        # С else все тесты проходят
         following = False
     context = {
         'count': count,
         'author': author,
         'page_obj': page_obj,
         'following': following,
-
+        'followers': followers,
     }
     return render(request, 'posts/profile.html', context)
 
@@ -131,7 +136,7 @@ def profile_follow(request, username):
 def profile_unfollow(request, username):
     author = get_object_or_404(User, username=username)
     is_follower = Follow.objects.filter(user=request.user, author=author)
-    if is_follower.exists():
+    if is_follower:
         is_follower.delete()
     return redirect('posts:profile', username=username)
 

@@ -8,15 +8,14 @@ class PostURLTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='user')
+        cls.user = User.objects.create_user('user')
         cls.group = Group.objects.create(
-            title='Тестовая группа',
-            slug='test_slug',
-            description='Тестовое описание',
+            title='Группа 1',
+            slug='slug',
         )
         cls.post = Post.objects.create(
             author=cls.user,
-            text='Тестовый пост',
+            text='пост',
             group=cls.group
         )
 
@@ -33,7 +32,7 @@ class PostURLTests(TestCase):
         )
 
     def test_pages_response_template(self):
-        """Тест на соответствие reverse и template"""
+        """соответствие reverse и template"""
         template_response_code = (
             ('posts:index', None, 'posts/index.html'),
             ('posts:group_list', (self.group.slug,), 'posts/group_list.html'),
@@ -48,7 +47,7 @@ class PostURLTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_url_to_template(self):
-        """Тест на соответствие reverse и url"""
+        """соответствие reverse и url"""
         revers_args_template = (
             ('posts:index', None, '/'),
             ('posts:group_list', (self.group.slug,),
@@ -65,14 +64,14 @@ class PostURLTests(TestCase):
                 self.assertEqual(reverse(name, args=args), url)
 
     def test_urls_to_author(self):
-        """Проверяем, что все url доступны автору"""
+        """все url доступны автору"""
         for name, args in self.revers_and_args:
             with self.subTest(name=name):
                 response = self.authorized_client.get(reverse(name, args=args))
                 self.assertEqual(response.status_code, 200)
 
     def test_urls_to_logined_user(self):
-        """Проверяем, что все url доступны не автору"""
+        """не все url доступны не автору"""
         not_author = User.objects.create(username='not_author')
         self.authorized_client.force_login(not_author)
         for name, args in self.revers_and_args:

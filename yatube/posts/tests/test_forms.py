@@ -1,29 +1,39 @@
-from django.test import Client, TestCase
+import shutil
+import tempfile
+
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django.conf import settings
 
 from posts.models import Group, Post, User
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostCreateFormTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
         cls.group = Group.objects.create(
-            title=('Заголовок для тестовой группы'),
-            slug='test_slug',
-            description='Тестовое описание'
+            title=('Группа 1'),
+            slug='slug1',
         )
         cls.group_2 = Group.objects.create(
-            title=('Заголовок для 2 тестовой группы'),
-            slug='test_slug_2',
-            description='Тестовое описание 2'
+            title=('Группа 2'),
+            slug='slug2',
         )
-        cls.user = User.objects.create_user(username='Nikita')
+        cls.user = User.objects.create_user('Nikita')
         cls.post = Post.objects.create(
             author=cls.user,
-            text='Тестовый пост',
+            text='пост',
             group=cls.group
         )
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
 
     def setUp(self):
         self.authorized_client = Client()
@@ -32,7 +42,6 @@ class PostCreateFormTests(TestCase):
     def test_post(self):
         """Новая записть создаётся"""
         Post.objects.all().delete()
-        count_posts = Post.objects.count()
         form_data = {
             'text': 'Данные из формы',
             'group': self.group.id
@@ -43,7 +52,7 @@ class PostCreateFormTests(TestCase):
             follow=True,
         )
         post_1 = Post.objects.first()
-        self.assertEqual(Post.objects.count(), count_posts + 1)
+        self.assertTrue(Post.objects.count() == 1)
         self.assertRedirects(response, reverse(
             'posts:profile', args=(self.user.username,)))
         self.assertEqual(post_1.author, self.user)
@@ -69,7 +78,6 @@ class PostCreateFormTests(TestCase):
 
     def test_authorized_edit_post(self):
         """авторизованный может редактировать"""
-        count_posts_1 = Post.objects.count()
         form_data = {
             'text': 'Измененный текст',
             'group': self.group_2.id,
@@ -82,7 +90,6 @@ class PostCreateFormTests(TestCase):
         edited = Post.objects.first()
         response = self.client.get(reverse(
             'posts:group_list', args=(self.group.slug,)))
-        count_posts_2 = Post.objects.count()
         self.assertEqual(post_2.status_code, 200)
         self.assertEqual(edited.text, form_data['text'])
         self.assertEqual(edited.author, self.post.author)
@@ -91,4 +98,4 @@ class PostCreateFormTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             len(response.context.get('page_obj').object_list), 0)
-        self.assertEqual(count_posts_1, count_posts_2)
+        self.assertTrue(Post.objects.count() == 1)

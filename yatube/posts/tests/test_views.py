@@ -36,12 +36,12 @@ class PostTests(TestCase):
         )
         cls.group = Group.objects.create(
             title='Заголовок группы',
-            slug='test_slug'
+            slug='slug'
         )
-        cls.user = User.objects.create_user(username='test_user')
+        cls.user = User.objects.create_user('user')
         cls.post = Post.objects.create(
             author=cls.user,
-            text='Тестовая запись',
+            text='запись',
             group=cls.group,
             image=uploaded
         )
@@ -57,14 +57,10 @@ class PostTests(TestCase):
         else:
             context_in = otvet.context.get('post')
 
-        post_text_0 = context_in.text
-        post_author_0 = context_in.author.username
-        post_group_0 = context_in.group.title
-        post_image_0 = context_in.image
-        self.assertEqual(post_text_0, self.post.text)
-        self.assertEqual(post_author_0, self.user.username)
-        self.assertEqual(post_group_0, self.group.title)
-        self.assertEqual(post_image_0, self.post.image)
+        self.assertEqual(context_in.text, self.post.text)
+        self.assertEqual(context_in.author.username, self.user.username)
+        self.assertEqual(context_in.group.title, self.group.title)
+        self.assertEqual(context_in.image, self.post.image)
 
     def setUp(self):
         self.authorized_client = Client()
@@ -83,7 +79,7 @@ class PostTests(TestCase):
             reverse('posts:group_list', args=(self.group.slug,)))
         self.context_help(otvet=response)
         self.assertEqual(response.context.get('group'), self.group)
-        self.assertEqual(response.context.get('group').slug, 'test_slug')
+        self.assertEqual(response.context.get('group').slug, self.group.slug)
 
     # Проверяет контекст на странице профиля
     def test_context_profile(self):
@@ -96,7 +92,7 @@ class PostTests(TestCase):
 
     # Проверяет содержимое страницы с деталями поста
     def test_post_detail(self):
-        """тест на работоспособность post_detail"""
+        """работоспособность post_detail"""
         response = self.authorized_client.get((
             reverse('posts:post_detail', args=(self.post.id,))
         ))
@@ -129,11 +125,11 @@ class PostTests(TestCase):
     def test_post_another_group(self):
         """Пост не попал в другую группу"""
         Group.objects.create(
-            title='Вторая группа',
-            slug='test_slug_2'
+            title='Группа 2',
+            slug='slug_2'
         )
         response = self.authorized_client.get(
-            reverse('posts:group_list', args=('test_slug_2',)))
+            reverse('posts:group_list', args=('slug_2',)))
 
         self.assertEqual(
             len(response.context.get('page_obj').object_list), 0)
@@ -141,19 +137,19 @@ class PostTests(TestCase):
         post = self.post
         self.assertTrue(post.group)
         response = self.authorized_client.get(
-            reverse('posts:group_list', args=('test_slug',)))
+            reverse('posts:group_list', args=('slug',)))
         self.context_help(otvet=response)
 
     def test_add_comment(self):
         self.authorized_client.post(
             reverse('posts:add_comment', args=(self.post.id,)),
-            {'text': "тестовый комментарий"},
+            {'text': "комментарий"},
             follow=True
         )
         response = self.authorized_client.get(
             reverse('posts:post_detail', args=(self.post.id,))
         )
-        self.assertContains(response, 'тестовый комментарий')
+        self.assertContains(response, 'комментарий')
         self.client.post(
             reverse('posts:add_comment', args=(self.post.id,)),
             {'text': "комментарий от гостя"},
@@ -169,15 +165,15 @@ class PaginatorViewsTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.author = User.objects.create_user(username='user')
+        cls.author = User.objects.create_user('user')
         cls.group = Group.objects.create(
-            title=('Заголовок тестовой группы'),
-            slug='test_slug',
-            description='Тестовое описание')
+            title=('Группа 1'),
+            slug='slug',
+        )
         cls.posts = []
         for number in range(NUMBER_OF_POSTS):
             cls.posts.append(Post(
-                text=f'Тестовый пост {number}',
+                text=f'пост {number}',
                 author=cls.author,
                 group=cls.group
             )
@@ -185,7 +181,7 @@ class PaginatorViewsTest(TestCase):
         Post.objects.bulk_create(cls.posts)
 
     def setUp(self):
-        self.user = User.objects.create_user(username='mobpsycho100')
+        self.user = User.objects.create_user('mobpsycho100')
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
@@ -214,9 +210,9 @@ class CacheTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username='test_name')
+        cls.user = User.objects.create_user('name')
         cls.post = Post.objects.create(
-            text='Тестовая запись для создания поста',
+            text='Пост 1',
             author=cls.user
         )
 
@@ -225,7 +221,7 @@ class CacheTests(TestCase):
         self.authorized_client.force_login(self.user)
 
     def test_cache_index(self):
-        """Тест кэширования страницы index.html"""
+        """Кэширование страницы index.html"""
         first_state = self.authorized_client.get(reverse('posts:index'))
         post_1 = Post.objects.get(id=self.post.id)
         post_1.text = 'Измененный текст'
@@ -241,11 +237,11 @@ class FollowTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user_follower = User.objects.create_user(username='follower')
-        cls.user_following = User.objects.create_user(username='following')
+        cls.user_follower = User.objects.create_user('follower')
+        cls.user_following = User.objects.create_user('following')
         cls.post = Post.objects.create(
             author=cls.user_following,
-            text='Тестовая запись для тестирования ленты'
+            text='  запись для тестирования ленты'
         )
 
     def setUp(self):

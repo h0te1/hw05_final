@@ -84,7 +84,7 @@ class Comment(models.Model):
         verbose_name='комментарий',
         help_text='Введите текст',
         blank=False,
-        null=True,
+        null=False,
     )
     created = models.DateTimeField(
         'Дата создания',
@@ -101,3 +101,10 @@ class Follow(models.Model):
         User, on_delete=models.CASCADE,
         related_name="following",
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'], name='unique_author_user_following'
+            )
+        ]

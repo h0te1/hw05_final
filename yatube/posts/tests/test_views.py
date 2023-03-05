@@ -63,6 +63,7 @@ class PostTests(TestCase):
         self.assertEqual(context_in.image, self.post.image)
 
     def setUp(self):
+        cache.clear()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
@@ -181,6 +182,7 @@ class PaginatorViewsTest(TestCase):
         Post.objects.bulk_create(cls.posts)
 
     def setUp(self):
+        cache.clear()
         self.user = User.objects.create_user('mobpsycho100')
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
@@ -217,6 +219,7 @@ class CacheTests(TestCase):
         )
 
     def setUp(self):
+        cache.clear()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
@@ -245,6 +248,7 @@ class FollowTests(TestCase):
         )
 
     def setUp(self):
+        cache.clear()
         self.client_auth_follower = Client()
         self.client_auth_following = Client()
         self.client_auth_follower.force_login(self.user_follower)

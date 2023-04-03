@@ -25,6 +25,13 @@ class Group(models.Model):
         return f'{self.title}'
 
 
+class Tag(models.Model):
+    name = models.CharField(max_length=32)
+
+    def __str__(self):
+        return self.name
+
+
 class Post(models.Model):
     text = models.TextField(
         verbose_name='Текст поста',
@@ -55,6 +62,10 @@ class Post(models.Model):
     created = models.DateTimeField(
         'Дата создания',
         auto_now_add=True
+    )
+    tag = models.ManyToManyField(
+        Tag,
+        through='TagPost'
     )
 
     class Meta:
@@ -108,3 +119,11 @@ class Follow(models.Model):
                 fields=['user', 'author'], name='unique_author_user_following'
             )
         ]
+
+
+class TagPost(models.Model):
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.tag} {self.post}'
